@@ -11,6 +11,14 @@ terraform {
   }
 }
 
+# provider "aci" {
+#   username = "username"
+#   password = "password"
+#   url      = "https://apic.url"
+#   insecure = true
+#   retries  = 4
+# }
+
 locals {
   model = yamldecode(data.utils_yaml_merge.model.output)
 }
