@@ -339,7 +339,7 @@ apic:
 
 ## Step 3: Tenant Deployment
 
-Make sure to update provider block in the `main.tf` file in the root folder with the right credentials and APIC IP address. It is recommended to use signature based authentication. For more information see: [Terraform Provider Documentation](https://developer.cisco.com/docs/nexus-as-code/#!simple-example/step-2-tenant-deployment:~:text=Terraform%20Provider%20Documentation). The reason signature based authentication is preferred is due to APIC rate limiting requests from username and password-based authentication.
+If you haven't exported environmental variables make sure to update provider block in the `main.tf` file in the root folder with the right credentials and APIC IP address. It is recommended to use signature based authentication. For more information see: [Terraform Provider Documentation](https://developer.cisco.com/docs/nexus-as-code/#!simple-example/step-2-tenant-deployment:~:text=Terraform%20Provider%20Documentation). The reason signature based authentication is preferred is due to APIC rate limiting requests from username and password-based authentication.
 
 ```hcl
 provider "aci" {
