@@ -101,7 +101,13 @@ http 10.0.0.0 255.0.0.0 management
 
 An example tenant definition is provided in `data/tenant_nac_l4l7.yaml`. This is where the data (variable definition) is abstracted from the logic (infrastructure declaration).
 
-Navigate to `data/tenant_nac_l4l7.yaml` and take note of the structure. This example provisions the following ACI resources
+Navigate to the `data` folder and note that there are three `YAML` files. 
+
+- `data/tenant_nac_l4l7.yaml` - configures the tenant, AP, EPGs, VRF, BDs, Contracts, and Filters
+- `data/l4l7_service_graph.yaml` - configures the service graph and attaches to the web contract
+- `data/vmm_access_policies.yaml` - Configures the VMM integration and VLAN pools
+
+This example provisions the following ACI resources
 
 - Tenant
   - nac_l4l7
@@ -136,48 +142,10 @@ Navigate to `data/tenant_nac_l4l7.yaml` and take note of the structure. This exa
 > The following properties from the configuration below should be updated to match your environment
 > - l3_destination mac
 
+`data/tenant_nac_l4l7.yaml`
 ```yaml
 ---
 apic:
-  access_policies:
-    interface_policies:
-      cdp_policies:
-        - name: My-vCenter_cdpIfPol
-          admin_state: true
-      lldp_policies:
-        - name: My-vCenter_lldpIfPol
-          admin_rx_state: true
-          admin_tx_state: true
-      port_channel_policies:
-        - name: My-vCenter_lacpLagPol
-          mode: mac-pin
-    vlan_pools:
-      - name: vcenter-vlans
-        description: "VLANs used by Vcenter VMM integration"
-        allocation: dynamic
-        ranges:
-          - from: 3000
-            to: 3050
-
-  fabric_policies:
-    vmware_vmm_domains:
-    - name: My-vCenter
-      access_mode: read-write
-      vlan_pool: vcenter-vlans
-      vswitch:
-        cdp_policy: My-vCenter_cdpIfPol
-        lldp_policy: My-vCenter_lldpIfPol
-        port_channel_policy: My-vCenter_lacpLagPol
-      credential_policies:
-        - name: vCenterUser
-          username: administrator@vsphere.local
-          password: C1sco12345!
-      vcenters:
-        - name: vc1
-          hostname_ip: 198.18.133.30
-          datacenter: dCloud-DC
-          credential_policy: vCenterUser
-          dvs_version: 6.6
   tenants:
     - name: nac_l4l7
 
@@ -244,13 +212,23 @@ apic:
       contracts:
         - name: web-db
           subjects:
-            - name: icmp-src-any-to-dst
+            - name: icmp
               filters:
-                - filter: src-any-to-dst
+                - filter: icmp-src-any-to-dst
               service_graph: asa-routed
-            - name: tcp-src-any-to-dst-80
+            - name: web
               filters:
-                - filter: src-any-to-dst-80
+                - filter: tcp-src-any-to-dst-80
+      
+```
+
+`data/l4l7_service_graph.yaml`
+```yaml
+---
+apic:
+  tenants:
+    - name: nac_l4l7
+      managed: false
       
       services:
         l4l7_devices:
@@ -312,6 +290,51 @@ apic:
               logical_interface: server
               bridge_domain:
                 name: fw-server_24
+```
+
+``data/vmm_access_policies.yaml`
+```yaml
+---
+apic:
+  access_policies:
+    interface_policies:
+      cdp_policies:
+        - name: My-vCenter_cdpIfPol
+          admin_state: true
+      lldp_policies:
+        - name: My-vCenter_lldpIfPol
+          admin_rx_state: true
+          admin_tx_state: true
+      port_channel_policies:
+        - name: My-vCenter_lacpLagPol
+          mode: mac-pin
+    vlan_pools:
+      - name: vcenter-vlans
+        description: "VLANs used by Vcenter VMM integration"
+        allocation: dynamic
+        ranges:
+          - from: 3000
+            to: 3050
+
+  fabric_policies:
+    vmware_vmm_domains:
+    - name: My-vCenter
+      access_mode: read-write
+      vlan_pool: vcenter-vlans
+      vswitch:
+        cdp_policy: My-vCenter_cdpIfPol
+        lldp_policy: My-vCenter_lldpIfPol
+        port_channel_policy: My-vCenter_lacpLagPol
+      credential_policies:
+        - name: vCenterUser
+          username: administrator@vsphere.local
+          password: C1sco12345!
+      vcenters:
+        - name: vc1
+          hostname_ip: 198.18.133.30
+          datacenter: dCloud-DC
+          credential_policy: vCenterUser
+          dvs_version: 6.6
 ```
 
 ## Step 3: Tenant Deployment
