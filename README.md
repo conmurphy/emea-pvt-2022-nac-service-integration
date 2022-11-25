@@ -105,7 +105,7 @@ Navigate to the `data` folder and note that there are three `YAML` files.
 
 - `data/tenant_nac_l4l7.yaml` - configures the tenant, AP, EPGs, VRF, BDs, Contracts, and Filters
 - `data/l4l7_service_graph.yaml` - configures the service graph and attaches to the web contract
-- `data/vmm_access_policies.yaml` - Configures the VMM integration and VLAN pools
+- `data/vmm_access_policies.yaml` - configures the VMM integration and VLAN pools
 
 This example provisions the following ACI resources
 
@@ -292,7 +292,7 @@ apic:
                 name: fw-server_24
 ```
 
-``data/vmm_access_policies.yaml`
+`data/vmm_access_policies.yaml`
 ```yaml
 ---
 apic:
