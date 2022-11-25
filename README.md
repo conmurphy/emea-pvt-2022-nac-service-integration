@@ -99,12 +99,12 @@ http 10.0.0.0 255.0.0.0 management
 
 ## Step 2: Tenant Validation
 
-An example tenant definition is provided in `data/tenant_NaC_L4L7_SVC.yaml`. This is where the data (variable definition) is abstracted from the logic (infrastructure declaration).
+An example tenant definition is provided in `data/tenant_nac_l4l7.yaml`. This is where the data (variable definition) is abstracted from the logic (infrastructure declaration).
 
-Navigate to `data/tenant_NaC_L4L7_SVC.yaml` and take note of the structure. This example provisions the following ACI resources
+Navigate to `data/tenant_nac_l4l7.yaml` and take note of the structure. This example provisions the following ACI resources
 
 - Tenant
-  - NaC_L4L7_SVC
+  - nac_l4l7
 - EPGs
   - client
   - server
@@ -130,7 +130,7 @@ Navigate to `data/tenant_NaC_L4L7_SVC.yaml` and take note of the structure. This
   - asa-routed
 
 > **Note**
-> If you already have a tenant named NaC_L4L7_SVC in your ACI infrastructure, you must alter the tenant name in the tenant_NaC_L4L7_SVC.yaml file to avoid overlap. The name of the yaml file itself is arbitrary.
+> If you already have a tenant named nac_l4l7 in your ACI infrastructure, you must alter the tenant name in the tenant_nac_l4l7.yaml file to avoid overlap. The name of the yaml file itself is arbitrary.
 
 > **Note**
 > The following properties from the configuration below should be updated to match your environment
@@ -170,8 +170,8 @@ apic:
         port_channel_policy: My-vCenter_lacpLagPol
       credential_policies:
         - name: vCenterUser
-          username: administrator
-          password: C1sco12345
+          username: administrator@vsphere.local
+          password: C1sco12345!
       vcenters:
         - name: vc1
           hostname_ip: 198.18.133.30
@@ -179,26 +179,26 @@ apic:
           credential_policy: vCenterUser
           dvs_version: 6.6
   tenants:
-    - name: NaC_L4L7_SVC
+    - name: nac_l4l7
 
       vrfs:
-        - name: production
+        - name: nac_l4l7.production
 
       bridge_domains: 
-        - name: 192.168.10.0
-          vrf: production
+        - name: 192.168.10.0_24
+          vrf: nac_l4l7.production
           subnets: 
           - ip: 192.168.10.254/24 
-        - name: 192.168.20.0
-          vrf: production
+        - name: 192.168.20.0_24
+          vrf: nac_l4l7.production
           subnets: 
           - ip: 192.168.20.254/24 
-        - name: fw-client
-          vrf: production
+        - name: fw-client_24
+          vrf: nac_l4l7.production
           subnets: 
           - ip: 172.16.10.254/24
-        - name: fw-server
-          vrf: production
+        - name: fw-server_24
+          vrf: nac_l4l7.production
           subnets: 
           - ip: 172.16.20.254/24
 
@@ -207,7 +207,7 @@ apic:
         - name: segments
           endpoint_groups:
             - name: client
-              bridge_domain: 192.168.10.0
+              bridge_domain: 192.168.10.0_24
               contracts:
                 consumers:
                   - web-db
@@ -217,7 +217,7 @@ apic:
                   deployment_immediacy: immediate
                   resolution_immediacy: immediate
             - name: server
-              bridge_domain: 192.168.20.0
+              bridge_domain: 192.168.20.0_24
               contracts:
                 providers:
                   - web-db
@@ -228,14 +228,14 @@ apic:
                   resolution_immediacy: immediate
 
       filters:
-        - name: icmp
+        - name: icmp-src-any-to-dst
           entries:
-            - name: icmp
+            - name: src-any-to-dst
               ethertype: ip
               protocol: icmp
-        - name: web
+        - name: tcp-src-any-to-dst-80
           entries:
-            - name: http
+            - name: src-any-to-dst-80
               ethertype: ip
               protocol: tcp
               destination_from_port: http
@@ -244,13 +244,13 @@ apic:
       contracts:
         - name: web-db
           subjects:
-            - name: icmp
+            - name: icmp-src-any-to-dst
               filters:
-                - filter: icmp
+                - filter: src-any-to-dst
               service_graph: asa-routed
-            - name: web
+            - name: tcp-src-any-to-dst-80
               filters:
-                - filter: web
+                - filter: src-any-to-dst-80
       
       services:
         l4l7_devices:
@@ -293,7 +293,7 @@ apic:
             template_type: FW_ROUTED
             redirect: true
             device:
-              tenant: NaC_L4L7_SVC
+              tenant: nac_l4l7
               name: asav
         device_selection_policies:
           - contract: web-db
@@ -304,14 +304,14 @@ apic:
                 name: client
               logical_interface: client
               bridge_domain:
-                name: fw-client
+                name: fw-client_24
             provider:
               l3_destination: true
               redirect_policy:
                 name: server
               logical_interface: server
               bridge_domain:
-                name: fw-server
+                name: fw-server_24
 ```
 
 ## Step 3: Tenant Deployment
@@ -345,10 +345,10 @@ Followed by `yes` to approve.
 Upon success you should receive the following output:
 
 ```cli
-Apply complete! Resources: 116 added, 0 changed, 0 destroyed.
+Apply complete! Resources: 118 added, 0 changed, 0 destroyed.
 ```
 
-Navigate to your APIC and verify that your new tenant `NaC_L4L7_SVC` has been deployed successfully.
+Navigate to your APIC and verify that your new tenant `nac_l4l7` has been deployed successfully.
 
 Navigate to the VMware VMM integration and confirm that the VMM policies have been created.
 

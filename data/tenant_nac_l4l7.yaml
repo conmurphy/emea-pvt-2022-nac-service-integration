@@ -1,0 +1,76 @@
+---
+apic:
+  tenants:
+    - name: nac_l4l7
+
+      vrfs:
+        - name: nac_l4l7.production
+
+      bridge_domains: 
+        - name: 192.168.10.0_24
+          vrf: nac_l4l7.production
+          subnets: 
+          - ip: 192.168.10.254/24 
+        - name: 192.168.20.0_24
+          vrf: nac_l4l7.production
+          subnets: 
+          - ip: 192.168.20.254/24 
+        - name: fw-client_24
+          vrf: nac_l4l7.production
+          subnets: 
+          - ip: 172.16.10.254/24
+        - name: fw-server_24
+          vrf: nac_l4l7.production
+          subnets: 
+          - ip: 172.16.20.254/24
+
+
+      application_profiles:
+        - name: segments
+          endpoint_groups:
+            - name: client
+              bridge_domain: 192.168.10.0_24
+              contracts:
+                consumers:
+                  - web-db
+              vmware_vmm_domains:
+                - name: My-vCenter
+                  delimiter: '|'
+                  deployment_immediacy: immediate
+                  resolution_immediacy: immediate
+            - name: server
+              bridge_domain: 192.168.20.0_24
+              contracts:
+                providers:
+                  - web-db
+              vmware_vmm_domains:
+                - name: My-vCenter
+                  delimiter: '|'
+                  deployment_immediacy: immediate
+                  resolution_immediacy: immediate
+
+      filters:
+        - name: icmp-src-any-to-dst
+          entries:
+            - name: src-any-to-dst
+              ethertype: ip
+              protocol: icmp
+        - name: tcp-src-any-to-dst-80
+          entries:
+            - name: src-any-to-dst-80
+              ethertype: ip
+              protocol: tcp
+              destination_from_port: http
+              destination_to_port: http
+
+      contracts:
+        - name: web-db
+          subjects:
+            - name: icmp
+              filters:
+                - filter: icmp-src-any-to-dst
+              service_graph: asa-routed
+            - name: web
+              filters:
+                - filter: tcp-src-any-to-dst-80
+      

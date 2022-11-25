@@ -1,0 +1,41 @@
+---
+apic:
+  access_policies:
+    interface_policies:
+      cdp_policies:
+        - name: My-vCenter_cdpIfPol
+          admin_state: true
+      lldp_policies:
+        - name: My-vCenter_lldpIfPol
+          admin_rx_state: true
+          admin_tx_state: true
+      port_channel_policies:
+        - name: My-vCenter_lacpLagPol
+          mode: mac-pin
+    vlan_pools:
+      - name: vcenter-vlans
+        description: "VLANs used by Vcenter VMM integration"
+        allocation: dynamic
+        ranges:
+          - from: 3000
+            to: 3050
+
+  fabric_policies:
+    vmware_vmm_domains:
+    - name: My-vCenter
+      access_mode: read-write
+      vlan_pool: vcenter-vlans
+      vswitch:
+        cdp_policy: My-vCenter_cdpIfPol
+        lldp_policy: My-vCenter_lldpIfPol
+        port_channel_policy: My-vCenter_lacpLagPol
+      credential_policies:
+        - name: vCenterUser
+          username: administrator@vsphere.local
+          password: C1sco12345!
+      vcenters:
+        - name: vc1
+          hostname_ip: 198.18.133.30
+          datacenter: dCloud-DC
+          credential_policy: vCenterUser
+          dvs_version: 6.6

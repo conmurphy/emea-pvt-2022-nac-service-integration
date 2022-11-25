@@ -1,0 +1,66 @@
+---
+apic:
+  tenants:
+    - name: nac_l4l7
+      managed: false
+      
+      services:
+        l4l7_devices:
+          - name: asav
+            context_aware: single-Context
+            type: VIRTUAL
+            vmware_vmm_domain: My-vCenter 
+            function: GoTo
+            managed: false
+            service_type: FW
+            concrete_devices:
+              - name: asav
+                vcenter_name: vc1 
+                vm_name: ASAv 
+                interfaces:
+                  - name: client
+                    vnic_name: Network adapter 2
+                  - name: server
+                    vnic_name: Network adapter 3
+            logical_interfaces:
+              - name: client
+                concrete_interfaces:
+                  - device: asav
+                    interface_name: client
+              - name: server
+                concrete_interfaces:
+                  - device: asav
+                    interface_name: server
+        redirect_policies:
+          - name: client
+            l3_destinations:
+              - ip: 172.16.10.1
+                mac: 00:50:56:8E:F7:96 # CHANGE THIS TO MAC OF ASAV NETWORK ADAPTER 2
+          - name: server
+            l3_destinations:
+              - ip: 172.16.20.1
+                mac: 00:50:56:8E:51:93 # CHANGE THIS TO MAC OF ASAV NETWORK ADAPTER 3 
+        service_graph_templates:
+          - name: asa-routed
+            template_type: FW_ROUTED
+            redirect: true
+            device:
+              tenant: nac_l4l7
+              name: asav
+        device_selection_policies:
+          - contract: web-db
+            service_graph_template: asa-routed
+            consumer:
+              l3_destination: true
+              redirect_policy:
+                name: client
+              logical_interface: client
+              bridge_domain:
+                name: fw-client_24
+            provider:
+              l3_destination: true
+              redirect_policy:
+                name: server
+              logical_interface: server
+              bridge_domain:
+                name: fw-server_24

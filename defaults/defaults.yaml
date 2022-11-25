@@ -437,7 +437,7 @@ defaults:
             name_suffix: ''
             from_module: 1
       mcp:
-        admin_state: true
+        admin_state: false
         per_vlan: true
         action: true
         key: cisco
