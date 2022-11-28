@@ -59,6 +59,8 @@ module "tenant" {
   for_each    = toset([for tenant in lookup(local.model.apic, "tenants", {}) : tenant.name])
   model       = local.model
   tenant_name = each.value
+
+  depends_on = [module.fabric_policies, module.interface_policies]
 }
 
 
